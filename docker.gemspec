@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.homepage    = "https://git.computestacks.com"
   s.summary     = "ComputeStacks Docker Integration"
   s.description = "ComputeStacks Docker Integration"
-  s.license     = "MIT"
+  s.license     = "closed-source"
   s.required_ruby_version     = '>= 1.9.3'
   s.add_dependency 'json',      "~> 1.8"
   s.files         = `git ls-files`.split("\n")
