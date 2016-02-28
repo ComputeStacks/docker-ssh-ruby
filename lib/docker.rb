@@ -4,5 +4,6 @@ require 'json'
 require 'docker/client'
 require 'docker/container'
 require 'docker/errors'
+require 'docker/node'
 
 module Docker; end
