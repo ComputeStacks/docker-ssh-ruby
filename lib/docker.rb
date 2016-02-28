@@ -1,4 +1,5 @@
 require 'net/ssh'
+require 'json'
 
 require 'docker/client'
 require 'docker/container'

@@ -8,7 +8,7 @@ module Docker
     # conn_method: tcp or ssh
     # path: full path,including port, to host.
     # options = {:key => "path"}
-    def initialize(connection_string, options = {})
+    def initialize(connection_string, opts = {})
       self.conn_method = connection_string.split("://").first
       self.path = connection_string.split("://").last.split(":").first
       port = connection_string.split("://").last.split(":").last
@@ -16,10 +16,11 @@ module Docker
         port = conn_method == 'ssh' ? 22 : 2375
       end
       self.port = port
-      self.options = options
+      self.options = opts
     end
 
-    def perform!(command = nil)
+    # Run arbitrary commands on a host or tcp endpoint.
+    def exec!(command = nil)
       case self.conn_method
       when "ssh"
         ssh(command)
@@ -33,7 +34,7 @@ module Docker
     private
 
     def ssh(command)
-      raise MissingParameter, "Missing SSH Key." if options[:key].nil?
+      raise MissingParameter, "Missing SSH Key." if self.options[:key].nil?
       timeout = command.nil? ? 10 : 300
       begin
         Timeout.timeout(timeout) do
@@ -54,11 +55,31 @@ module Docker
             end
           end
           ssh.close()
-          return rsp
+          # Try to capture non-json responses.
+          if rsp =~ /Error/
+            # Unknown containers will have the response:
+            # '[]\nError: No such image or container: test\n'
+            if rsp.split("\n")[1]
+              raise UnknownContainer, rsp.split("\n")[1]
+            else
+              raise CommandFailed, rsp
+            end
+          else
+            # First try to parse as JSON, but fallback to plaintext.
+            begin
+              return JSON.parse(rsp, :quirks_mode => true, :allow_nan => true)
+            rescue
+              return rsp
+            end
+          end
         end
       rescue Timeout::Error
         raise ConnectionTimeout, "SSH Timeout"
       end
+    end
+
+    def tcp(command)
+
     end
 
   end

@@ -4,14 +4,25 @@
 # - container_id: Either actual docker ID, or the unique name
 # - connection_string: ssh://192.168.29.22:22 or tcp://192.168.29.66:2075. Default ports can be omitted
 # - image_url: string
-# - options:
+# - options: (Only used for .new())
 # {
 #   :settings => {
-#     :env => [], :volume => [], :args => [], :port_map => [{'ext' => 0, 'int' => 0}]
+#     :env => [], :volumes => [], :args => [], :port_map => [[host, container]]
 #   },
 #   :node => {
 #     :key => ''
 #   }
+# }
+# options[:settings][{env,args}] = [[k,v]]
+# options[:settings][{volumes,port_map}] = [[host,container]]
+#
+#
+# - options: (Perstant throughout model. Created during init)
+# {
+#   :node => {
+#     :key => ''
+#   },
+#   :runtime =>
 # }
 #
 # TODO: Make sure linked resources are up and running.
@@ -26,6 +37,11 @@ module Docker
     attr_accessor :container_id,
                   :connection_string,
                   :image_url,
+                  :env,
+                  :args,
+                  :volumes,
+                  :port_map,
+                  :restart_policy,
                   :options
 
     def initialize(container_id, connection_string, options = {})
@@ -34,6 +50,17 @@ module Docker
       self.options = options
       unless options.nil?
         self.image_url = options[:image_url]
+        if options[:settings]
+          self.env = options[:settings][:env]
+          self.args = options[:settings][:args]
+          self.restart_policy = options[:settings][:restart_policy]
+          self.port_map = options[:settings][:port_map]
+          self.volumes = options[:settings][:volumes]
+          options.delete(:settings)
+        end
+      end
+      if self.restart_policy.nil?
+        self.restart_policy = "no"
       end
     end
 
@@ -50,20 +77,69 @@ module Docker
     def info
       case client.conn_method
       when "ssh"
-        client.perform!("docker inspect #{container_id}")
+        client.exec!("docker inspect --type=container #{container_id}")
       when "tcp"
         #
       end
     end
 
-    def create!
+    def status
+      client.exec!("docker ps --filter 'name=#{container_id}' --format '{{.Status}}'")
+    end
 
+    def create!(dry_run = false)
+      false if created?
+      if client.conn_method == 'ssh'
+        commands = []
+        commands << "docker run -d --name #{container_id}"
+        unless restart_policy == 'no'
+          commands << "--restart=#{restart_policy}"
+        end
+        if port_map
+          port_map.each do |h,c|
+            commands << "-p #{h}:#{c}"
+          end
+        end
+        if env
+          env.each do |k,v|
+            commands << "-e #{k}=#{v}"
+          end
+        end
+        if volumes
+          volumes.each do |h,c|
+            commands << "-v #{h}:#{c}"
+          end
+        end
+        commands << image_url
+        if args
+          args.each do |k,v|
+            commands << "--#{k}=#{v}"
+          end
+        end
+        cmd = commands.join(" ")
+        dry_run ? cmd : client.exec!(cmd)
+      else
+        #
+      end
+    end
+
+    # Perform one-time exec action on a container. This will create & delete a container.
+    def exec!(entrypoint, command, dry_run = false)
+      false if self.image_url.nil?
+      cmd = "docker run --rm --entrypoint #{entrypoint} #{self.image_url} #{command}"
+      dry_run ? cmd : client.exec!(cmd)
     end
 
     def client
       raise MissingConnectionString, 'No method of contacting node.' if connection_string.nil?
       Docker::Client.new(connection_string, options[:node])
     end
+
+    ## Helpers
+    def created?
+      !client.exec!("docker ps --filter 'name=#{container_id}' --format '{{.Status}}'").blank?
+    end
+    ## END Helpers
 
   end
 end
