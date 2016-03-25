@@ -55,8 +55,8 @@ module Docker
             end
           end
           ssh.close()
-          # Try to capture non-json responses.
-          if rsp =~ /Error/
+          # Try to capture non-json responses. 'Error' may appear in text somewhere else, so can't just look for that. Valid response will have " {" on [1] of the split.
+          if rsp.split("\n")[1] =~ /Error/
             # Unknown containers will have the response:
             # '[]\nError: No such image or container: test\n'
             if rsp.split("\n")[1]
@@ -64,6 +64,7 @@ module Docker
             else
               raise CommandFailed, rsp
             end
+            return rsp
           else
             # First try to parse as JSON, but fallback to plaintext.
             begin

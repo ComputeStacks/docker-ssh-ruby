@@ -50,6 +50,7 @@ module Docker
       self.options = options
       unless options.nil?
         self.image_url = options[:image_url]
+        options.delete(:image_url) if options[:image_url]
         if options[:settings]
           self.env = options[:settings][:env]
           self.args = options[:settings][:args]
@@ -62,6 +63,14 @@ module Docker
       if self.restart_policy.nil?
         self.restart_policy = "no"
       end
+    end
+
+    def start
+      client.exec!("docker start #{container_id}")
+    end
+
+    def stop
+      client.exec!("docker stop #{container_id}")
     end
 
     def image
@@ -83,10 +92,19 @@ module Docker
       end
     end
 
+    def logs
+      response = client.exec!("docker logs --timestamps=true --tail=125 #{container_id}")
+      log = []
+      log << response.split("\n")
+      return log.flatten
+    end
+
+    # Returns container uptime in human readable format.
     def status
       client.exec!("docker ps --filter 'name=#{container_id}' --format '{{.Status}}'")
     end
 
+    ## Actions ####
     def create!(dry_run = false)
       false if created?
       if client.conn_method == 'ssh'
@@ -103,6 +121,7 @@ module Docker
         if env
           env.each do |k,v|
             commands << "-e #{k}=#{v}"
+            #commands << %Q[-e #{k}="#{v}"]
           end
         end
         if volumes
@@ -110,18 +129,24 @@ module Docker
             commands << "-v #{h}:#{c}"
           end
         end
-        commands << image_url
         if args
           args.each do |k,v|
             commands << "--#{k}=#{v}"
           end
         end
+        commands << image_url
         cmd = commands.join(" ")
         dry_run ? cmd : client.exec!(cmd)
       else
         #
       end
     end
+
+    def destroy
+      client.exec!("docker rm #{container_id}")
+    end
+
+    ## END ACTIONS #####
 
     # Perform one-time exec action on a container. This will create & delete a container.
     def exec!(entrypoint, command, dry_run = false)
