@@ -73,6 +73,10 @@ module Docker
       client.exec!("docker stop #{container_id}")
     end
 
+    def restart
+      client.exec!("docker restart #{container_id}")
+    end
+
     def image
       if image_url
         image_url
