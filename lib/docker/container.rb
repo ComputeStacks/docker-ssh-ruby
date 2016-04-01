@@ -140,7 +140,11 @@ module Docker
         end
         commands << image_url
         cmd = commands.join(" ")
-        dry_run ? cmd : client.exec!(cmd)
+        begin
+          dry_run ? cmd : client.exec!(cmd)
+        rescue
+          return false
+        end
       else
         #
       end
