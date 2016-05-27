@@ -40,6 +40,7 @@ module Docker
                   :env,
                   :args,
                   :volumes,
+                  :container_settings,
                   :port_map,
                   :restart_policy,
                   :options
@@ -54,6 +55,7 @@ module Docker
         if options[:settings]
           self.env = options[:settings][:env]
           self.args = options[:settings][:args]
+          self.container_settings = options[:settings][:container_settings]
           self.restart_policy = options[:settings][:restart_policy]
           self.port_map = options[:settings][:port_map]
           self.volumes = options[:settings][:volumes]
@@ -86,7 +88,6 @@ module Docker
         nil
       end
     end
-
     def info
       case client.conn_method
       when "ssh"
@@ -133,12 +134,21 @@ module Docker
             commands << "-v #{h}:#{c}"
           end
         end
-        if args
-          args.each do |k,v|
-            commands << "--#{k}=#{v}"
+        if container_settings
+          container_settings.each do |k,v|
+            commands << "--#{k}=#{v}"       
           end
         end
         commands << image_url
+        if args
+          args.each do |k,v|
+            if v
+              commands << "#{k} #{v}"
+            else
+              commands << "#{k}"
+            end            
+          end
+        end        
         cmd = commands.join(" ")
         begin
           dry_run ? cmd : client.exec!(cmd)
