@@ -19,6 +19,11 @@ module Docker
       self.options = opts
     end
 
+    # TODO: Attempt to discover the API version, as this is how we determine if the API is availble.
+    def version
+      1
+    end
+
     # Run arbitrary commands on a host or tcp endpoint.
     def exec!(command = nil)
       case self.conn_method
