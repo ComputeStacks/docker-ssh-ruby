@@ -43,12 +43,14 @@ module Docker
                   :container_settings,
                   :port_map,
                   :restart_policy,
+                  :network,
                   :options
 
     def initialize(container_id, connection_string, options = {})
       self.container_id = container_id
       self.connection_string = connection_string
       self.options = options
+      self.network = nil
       unless options.nil?
         self.image_url = options[:image_url]
         options.delete(:image_url) if options[:image_url]
@@ -59,6 +61,7 @@ module Docker
           self.restart_policy = options[:settings][:restart_policy]
           self.port_map = options[:settings][:port_map]
           self.volumes = options[:settings][:volumes]
+          self.network = options[:settings][:network]
           options.delete(:settings)
         end
       end
@@ -118,6 +121,9 @@ module Docker
         unless restart_policy == 'no'
           commands << "--restart=#{restart_policy}"
         end
+        unless self.network.nil?
+          commands << "--network=#{self.network}"
+        end
         if port_map
           port_map.each do |h,c|
             commands << "-p #{h}:#{c}"
@@ -136,7 +142,7 @@ module Docker
         end
         if container_settings
           container_settings.each do |k,v|
-            commands << "--#{k}=#{v}"       
+            commands << "--#{k}=#{v}"
           end
         end
         commands << image_url
@@ -146,9 +152,9 @@ module Docker
               commands << "#{k} #{v}"
             else
               commands << "#{k}"
-            end            
+            end
           end
-        end        
+        end
         cmd = commands.join(" ")
         begin
           dry_run ? cmd : client.exec!(cmd)
