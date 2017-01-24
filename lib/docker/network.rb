@@ -36,8 +36,7 @@ module Docker
     def containers
       raise MissingParameter, 'Missing Network ID' if self.id.nil?
       begin
-        response = client.exec!("docker network inspect #{self.id} --format '{{json .Containers}}'")
-        result = JSON.parse(response)
+        client.exec!("docker network inspect #{self.id} --format '{{json .Containers}}'")
       rescue
         {}
       else

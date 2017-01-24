@@ -84,7 +84,7 @@ module Docker
 
     def networks
       begin
-        JSON.parse(client.exec!("docker inspect --format '{{json .NetworkSettings.Networks}}' #{container_id}"))
+        client.exec!("docker inspect --format '{{json .NetworkSettings.Networks}}' #{container_id}")
       rescue
         {}
       end
