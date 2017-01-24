@@ -18,10 +18,11 @@ module Docker
     def create!
       raise MissingParameter, 'Missing Subnet' if self.subnet.nil?
       raise MissingParameter, 'Missing Network ID' if self.id.nil?
-      cmd = ['docker network create --driver overlay']
-      cmd << '--attachable=true' if self.attachable
+      cmd = ['docker network create']
+      cmd << '--attachable' if self.attachable
+      cmd << '--driver overlay'
       cmd << '--opt encrypted' if self.encrypted
-      cmd << "--subjet=#{self.subnet}"
+      cmd << "--subnet=#{self.subnet}"
       cmd << self.id
       command = cmd.join(' ')
       client.exec!(command)
