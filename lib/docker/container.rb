@@ -82,6 +82,14 @@ module Docker
       client.exec!("docker restart #{container_id}")
     end
 
+    def networks
+      begin
+        JSON.parse(client.exec!("docker inspect --format '{{json .NetworkSettings.Networks}}' #{container_id}"))
+      rescue
+        {}
+      end
+    end
+
     def image
       if image_url
         image_url
@@ -91,11 +99,30 @@ module Docker
         nil
       end
     end
+
     def info
       case client.conn_method
       when "ssh"
         client.exec!("docker inspect --type=container #{container_id}")
       when "tcp"
+        #
+      end
+    end
+
+    def network_join!(network_name)
+      case client.conn_method
+      when 'ssh'
+        client.exec!("docker network connect #{network_name} #{self.name}")
+      when 'tcp'
+        #
+      end
+    end
+
+    def network_leave!(network_name)
+      case client.conn_method
+      when 'ssh'
+        client.exec!("docker network disconnect #{network_name} #{self.name}")
+      when 'tcp'
         #
       end
     end
