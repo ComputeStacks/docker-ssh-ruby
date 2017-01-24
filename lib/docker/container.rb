@@ -112,7 +112,7 @@ module Docker
     def network_join!(network_name)
       case client.conn_method
       when 'ssh'
-        client.exec!("docker network connect #{network_name} #{self.name}")
+        client.exec!("docker network connect #{network_name} #{container_id}")
       when 'tcp'
         #
       end
@@ -121,7 +121,7 @@ module Docker
     def network_leave!(network_name)
       case client.conn_method
       when 'ssh'
-        client.exec!("docker network disconnect #{network_name} #{self.name}")
+        client.exec!("docker network disconnect #{network_name} #{container_id}")
       when 'tcp'
         #
       end
