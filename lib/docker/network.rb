@@ -18,7 +18,7 @@ module Docker
     def create!
       raise MissingParameter, 'Missing Subnet' if self.subnet.nil?
       raise MissingParameter, 'Missing Network ID' if self.id.nil?
-      cmd = ['docker newtork create --driver overlay']
+      cmd = ['docker network create --driver overlay']
       cmd << '--attachable' if self.attachable
       cmd << '--opt encrypted' if self.encrypted
       cmd << "--subjet=#{self.subnet}"
