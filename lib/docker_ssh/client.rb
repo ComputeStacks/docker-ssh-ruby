@@ -1,4 +1,4 @@
-module Docker
+module DockerSSH
   class Client
 
     attr_accessor :conn_method, :path, :options, :port

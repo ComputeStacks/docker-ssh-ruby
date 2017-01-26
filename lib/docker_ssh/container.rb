@@ -30,8 +30,8 @@
 # - required_by: [<container_id>] -- an array of container id's. This will make sure containers that require this one are rebooted.
 #
 #
-# Docker::Container.new('registry', 'ssh://192.168.29.66', {node: {key: "/home/vagrant/.ssh/id_rsa"}})
-module Docker
+# DockerSSH::Container.new('registry', 'ssh://192.168.29.66', {node: {key: "/home/vagrant/.ssh/id_rsa"}})
+module DockerSSH
   class Container
 
     attr_accessor :container_id,
@@ -208,7 +208,7 @@ module Docker
 
     def client
       raise MissingConnectionString, 'No method of contacting node.' if connection_string.nil?
-      Docker::Client.new(connection_string, options[:node])
+      DockerSSH::Client.new(connection_string, options[:node])
     end
 
     ## Helpers

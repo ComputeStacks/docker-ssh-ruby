@@ -1,4 +1,4 @@
-module Docker
+module DockerSSH
   class Network
 
     attr_accessor :id,
@@ -55,7 +55,7 @@ module Docker
 
     def client
       raise UnknownConnectionType, 'Missing Connection String' if connection_string.nil?
-      Docker::Client.new(connection_string, options)
+      DockerSSH::Client.new(connection_string, options)
     end
 
   end

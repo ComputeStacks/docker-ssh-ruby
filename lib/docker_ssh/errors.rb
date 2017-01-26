@@ -1,4 +1,4 @@
-module Docker
+module DockerSSH
   class AuthenticationFailed < RuntimeError; end
   class ConnectionFailed < RuntimeError; end
   class ConnectionTimeout < RuntimeError; end
