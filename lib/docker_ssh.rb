@@ -1,10 +1,10 @@
 require 'net/ssh'
 require 'json'
 
-reuireq 'docker_ssh/client'
-reuireq 'docker_ssh/container'
-reuireq 'docker_ssh/errors'
-reuireq 'docker_ssh/network'
-reuireq 'docker_ssh/node'
+require 'docker_ssh/client'
+require 'docker_ssh/container'
+require 'docker_ssh/errors'
+require 'docker_ssh/network'
+require 'docker_ssh/node'
 
 module DockerSSH; end
