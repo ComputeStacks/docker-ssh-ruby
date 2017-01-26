@@ -4,7 +4,7 @@ require 'docker_ssh/version'
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name        = "docker"
+  s.name        = "docker-ssh"
   s.version     = DockerSSH::VERSION
   s.authors     = ["Kris Watson"]
   s.email       = ["kris@computestacks.com"]
