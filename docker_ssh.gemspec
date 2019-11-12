@@ -1,4 +1,5 @@
-$:.push File.expand_path("../lib", __FILE__)
+lib = File.expand_path('../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'docker_ssh/version'
 
@@ -12,10 +13,9 @@ Gem::Specification.new do |s|
   s.summary     = "ComputeStacks Docker Integration"
   s.description = "ComputeStacks Docker Integration"
   s.license     = "closed-source"
-  s.required_ruby_version     = '>= 1.9.3'
-  s.add_dependency 'json',      "~> 1.8"
+  s.required_ruby_version = '>= 2.5.0'
+  s.add_dependency 'json', '~> 2.2'
   s.files         = `git ls-files`.split("\n")
   s.require_paths = ["lib"]
-
 
 end
