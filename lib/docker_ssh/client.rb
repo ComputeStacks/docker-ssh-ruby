@@ -9,9 +9,9 @@ module DockerSSH
     # path: full path,including port, to host.
     # options = {:key => "path"}
     def initialize(connection_string, opts = {})
-      self.conn_method = connection_string.split("://").first
-      self.path = connection_string.split("://").last.split(":").first
-      port = connection_string.split("://").last.split(":").last
+      self.conn_method = connection_string.split('://').first
+      self.path = connection_string.split('://').last.split(':').first
+      port = connection_string.split('://').last.split(':').last
       if port.nil?
         port = conn_method == 'ssh' ? 22 : 2375
       end
@@ -26,10 +26,10 @@ module DockerSSH
 
     # Run arbitrary commands on a host or tcp endpoint.
     def exec!(command = nil)
-      case self.conn_method
-      when "ssh"
+      case conn_method
+      when 'ssh'
         ssh(command)
-      when "tcp"
+      when 'tcp'
         tcp(command)
       else
         raise UnknownConnectionType, "Unknown Connection Method. Valid options are 'ssh://' and 'tcp://'"
@@ -39,23 +39,23 @@ module DockerSSH
     private
 
     def ssh(command)
-      raise MissingParameter, "Missing SSH Key." if self.options[:key].nil?
+      raise MissingParameter, 'Missing SSH Key' if options[:key].nil?
       timeout = command.nil? ? 10 : 300
       begin
         Timeout.timeout(timeout) do
           begin
-            ssh = Net::SSH.start(path, "root", :keys => [options[:key]], :user_known_hosts_file => "/dev/null", :auth_methods => ['publickey'])
+            ssh = Net::SSH.start(path, 'root', keys: [options[:key]], user_known_hosts_file: '/dev/null', auth_methods: ['publickey'], port: port)
           rescue Net::SSH::AuthenticationFailed
-            raise AuthenticationFailed, "SSH Authentication Failure"
+            raise AuthenticationFailed, 'SSH Authentication Failure'
           rescue Errno::ECONNREFUSED
             # TODO: Handle connection refused differently?
-            raise ConnectionFailed, "Unable to connect"
+            raise ConnectionFailed, 'Unable to connect'
           rescue
-            raise ConnectionFailed, "Unable to connect"
+            raise ConnectionFailed, 'Unable to connect'
           end
-          rsp = ""
+          rsp = ''
           if command
-            ssh.exec!(command) do |ch, stream, line|
+            ssh.exec!(command) do |_, _, line|
               rsp += line
             end
           end
@@ -69,18 +69,17 @@ module DockerSSH
             else
               raise CommandFailed, rsp
             end
-            return rsp
           else
             # First try to parse as JSON, but fallback to plaintext.
             begin
-              return JSON.parse(rsp, :quirks_mode => true, :allow_nan => true)
+              return JSON.parse(rsp, quirks_mode: true, allow_nan: true)
             rescue
               return rsp
             end
           end
         end
       rescue Timeout::Error
-        raise ConnectionTimeout, "SSH Timeout"
+        raise ConnectionTimeout, 'SSH Timeout'
       end
     end
 

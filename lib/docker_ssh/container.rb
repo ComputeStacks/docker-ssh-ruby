@@ -65,9 +65,7 @@ module DockerSSH
           options.delete(:settings)
         end
       end
-      if self.restart_policy.nil?
-        self.restart_policy = "no"
-      end
+      self.restart_policy = 'no' if restart_policy.nil?
     end
 
     def start
